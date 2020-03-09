@@ -202,4 +202,4 @@ app.post("/survey", (req, res) => {
 });
 
 app.use(express.static("static"));
-app.listen(process.env.PORT | 3000, () => console.log("Web server is up and running on port " + 80));
+app.listen(process.env.PORT || 3000, () => console.log("Web server is up and running"));
