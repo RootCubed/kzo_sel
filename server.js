@@ -35,8 +35,6 @@ function generateAuthToken() {
     return crypto.randomBytes(30).toString("hex");
 }
 
-console.log(savedSurveys);
-
 app.get("/s/:id", (req, res) => {
     if (runningSurveys[req.params.id]) {
         res.send(runningSurveys[req.params.id].orig);
@@ -204,4 +202,4 @@ app.post("/survey", (req, res) => {
 });
 
 app.use(express.static("static"));
-app.listen(80, () => console.log("Web server is up and running on port " + 80));
+app.listen(process.env.PORT | 3000, () => console.log("Web server is up and running on port " + 80));
