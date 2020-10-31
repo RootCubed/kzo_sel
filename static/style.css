@@ -57,9 +57,12 @@ canvas {
     margin-right: 10px;
 }
 
-.labelLeft, .labelRight {
-    margin-top: 30px;
+.labelLeft, .labelRight, .labelMiddle {
     display: inline-block;
+}
+
+.labelMiddle {
+    transform: translate(0, -45px);
 }
 
 #footer {
@@ -81,6 +84,7 @@ canvas {
     border-radius: 10px;
     cursor: pointer;
     margin-bottom: 30px;
+    display: inline-block;
 }
 
 .btn:hover {

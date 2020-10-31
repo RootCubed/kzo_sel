@@ -43,12 +43,18 @@ function generateAuthToken() {
 }
 
 app.get("/s/:id", (req, res) => {
-    if (runningSurveys[req.params.id]) {
-        res.send(runningSurveys[req.params.id].orig);
+    let id = req.params.id.toLowerCase();
+    if (runningSurveys[id]) {
+        res.send(runningSurveys[id].orig);
     } else {
         res.status(404);
         res.end();
     }
+});
+
+app.get("/heartbeat", (req, res) => {
+    res.send("ok");
+    res.end();
 });
 
 app.post("/login", (req, res) => {
@@ -142,11 +148,15 @@ app.get("/endSurvey/:id", (req, res) => {
             
             ctx.fillStyle = "black";
             ctx.textAlign = "center";
+            ctx.font = "bold 10pt Verdana";
             ctx.fillText(runningSurveys[id].orig.questions[i][0], img.width / 2, 20);
+            ctx.font = "10pt Verdana";
             ctx.textAlign = "left";
             ctx.fillText(runningSurveys[id].orig.questions[i][1], 5, 120);
+            ctx.textAlign = "center";
+            ctx.fillText(runningSurveys[id].orig.questions[i][2], img.width / 2, 120);
             ctx.textAlign = "right";
-            ctx.fillText(runningSurveys[id].orig.questions[i][2], img.width - 5, 120);
+            ctx.fillText(runningSurveys[id].orig.questions[i][3], img.width - 5, 120);
             ctx.beginPath();
             ctx.lineTo(0, OFFSET_Y);
             ctx.lineTo(img.width, OFFSET_Y);
@@ -155,6 +165,7 @@ app.get("/endSurvey/:id", (req, res) => {
             ctx.lineTo(0, img.height - OFFSET_Y);
             ctx.lineTo(img.width, img.height - OFFSET_Y);
             ctx.stroke();
+            ctx.fillStyle = "#f5163b";
             for (answer of question) {
                 ctx.beginPath()
                 ctx.arc(answer[0] * img.width, answer[1] * (img.height - OFFSET_Y * 2) + OFFSET_Y, 4, 0, 2 * Math.PI);
@@ -226,7 +237,8 @@ app.get("/deleteSurvey/:id", (req, res) => {
 });
 
 app.post("/survey", (req, res) => {
-    if (!(req.body.surveyID && req.body.answers && req.body.answers.length == runningSurveys[req.body.surveyID].orig.questions.length)) {
+    let sId = req.body.surveyID.toLowerCase();
+    if (!(sId && req.body.answers && req.body.answers.length == runningSurveys[sId].orig.questions.length)) {
         console.log("invalid code lol fuck you");
         res.send("don't do that thank you very much");
         res.end();
@@ -244,10 +256,10 @@ app.post("/survey", (req, res) => {
     }
     for (let i = 0; i < req.body.answers.length; i++) {
         console.log(i + ": " + req.body.answers[i]);
-        console.log(runningSurveys[req.body.surveyID].answers[i]);
-        runningSurveys[req.body.surveyID].answers[i].push(req.body.answers[i]);
+        console.log(runningSurveys[sId].answers[i]);
+        runningSurveys[sId].answers[i].push(req.body.answers[i]);
     }
-    console.log(runningSurveys[req.body.surveyID]);
+    console.log(runningSurveys[sId]);
     res.send("ok");
     res.end();
 });

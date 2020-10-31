@@ -34,7 +34,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         <canvas height="50px" width="400px" id="q_${i++}"></canvas>
                         <div class="vl">
                             <span class="labelLeft">${question[1]}</span>
-                            <span class="labelRight">${question[2]}</span>
+                            <span class="labelRight">${question[3]}</span>
+                        </div>
+                        <div class="vl2">
+                            <span class="labelMiddle">${question[2]}</span>
                         </div>
                     </div>
                     `
@@ -65,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         
                         drawBackground(e.target, ctx);
 
-                        ctx.fillStyle = "black";
+                        ctx.fillStyle = "#f5163b";
 
                         ctx.beginPath()
                         ctx.ellipse(e.offsetX, e.offsetY, 4, 4, 0, 0, 2 * Math.PI);

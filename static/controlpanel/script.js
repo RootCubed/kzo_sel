@@ -2,6 +2,11 @@ let currentCode = "";
 let loadedQuestions;
 let currEdit = "";
 
+//heartbeat every 10 minutes to stop server from sleeping
+setInterval(() => {
+    fetch("/heartbeat");
+}, 1000 * 60 * 10);
+
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("code-survey-div").style.display = "none";
     document.getElementById("edit-survey-div").style.display = "none";
@@ -19,7 +24,11 @@ document.addEventListener("DOMContentLoaded", () => {
         let questionObj = {
             "name": document.querySelector("input.title").value,
             "questions": Array.from(document.getElementsByClassName("edit-box")).map(el => {
-                return [el.children[0].value, el.children[1].children[0].value, el.children[2].children[0].value];
+                return [
+                    el.children[0].value,
+                    el.children[1].children[0].value,
+                    el.children[2].children[0].value,
+                    el.children[3].children[0].value];
             })
         };
         let path = "/createSurvey";
@@ -103,6 +112,10 @@ function loadSurveys() {
                     case "survey-start":
                         fetch("/startSurvey/" + id)
                         .then(r => {
+                            if (r.redirected) {
+                                alert("Sitzung abgelaufen. Bitte loggen Sie sich erneut ein.");
+                                location.reload();
+                            }
                             if (r.status != 200) {
                                 alert("Ein Fehler ist aufgetreten. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.");
                                 return;
@@ -129,7 +142,10 @@ function loadSurveys() {
                                     <textarea class="edit-left" placeholder="Antwort links">${qs[question][1]}</textarea>
                                 </div>
                                 <div style="display: inline-block;">
-                                    <textarea class="edit-right" placeholder="Antwort rechts">${qs[question][2]}</textarea>
+                                    <textarea class="edit-right" placeholder="Antwort mitte (optional)">${qs[question][2]}</textarea>
+                                </div>
+                                <div style="display: inline-block;">
+                                    <textarea class="edit-right" placeholder="Antwort rechts">${qs[question][3]}</textarea>
                                 </div>
                                 <span class="survey-btn" id="delete-question">Frage löschen</span>
                             </div>
