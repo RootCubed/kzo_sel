@@ -149,6 +149,13 @@ app.get("/endSurvey/:id", (req, res) => {
             ctx.fillStyle = "black";
             ctx.textAlign = "center";
             ctx.font = "bold 10pt Verdana";
+            let size = 10;
+            let textWidth = ctx.measureText(runningSurveys[id].orig.questions[i][0]);
+            while (textWidth.width > 800) {
+                size -= 0.5;
+                ctx.font = "bold " + size + "pt Verdana";
+                textWidth = ctx.measureText(runningSurveys[id].orig.questions[i][0]);
+            }
             ctx.fillText(runningSurveys[id].orig.questions[i][0], img.width / 2, 20);
             ctx.font = "10pt Verdana";
             ctx.textAlign = "left";
