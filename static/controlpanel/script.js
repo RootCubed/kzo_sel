@@ -11,7 +11,50 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     document.querySelector("#user-div").addEventListener("click", () => {
         window.location = "/logout";
-    })
+    });
+    document.getElementById("edit-cancel").addEventListener("click", () => {
+        document.getElementById("edit-survey-div").style.display = "none";
+    });
+    document.getElementById("edit-save").addEventListener("click", () => {
+        let questionObj = {
+            "name": document.querySelector("input.title").value,
+            "questions": Array.from(document.getElementsByClassName("edit-box")).map(el => {
+                return [el.children[0].value, el.children[1].children[0].value, el.children[2].children[0].value];
+            })
+        };
+        let path = "/createSurvey";
+        if (currEdit != "") {
+            path = "/editSurvey/" + currEdit;
+        }
+        fetch(path, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(questionObj)
+        }).then(() => {
+            document.getElementById("edit-survey-div").style.display = "none";
+            loadSurveys();
+        });
+    });
+    document.getElementById("add-question").addEventListener("click", () => {
+        let newEl = document.createElement("div");
+        newEl.classList.add("edit-box");
+        newEl.innerHTML = `
+            <textarea class="edit-title" placeholder="Frage"></textarea>
+            <div style="display: inline-block;">
+                <textarea class="edit-left" placeholder="Antwort links"></textarea>
+            </div>
+            <div style="display: inline-block;">
+                <textarea class="edit-right" placeholder="Antwort rechts"></textarea>
+            </div>
+            <span class="survey-btn" id="delete-question">Frage löschen</span>
+        `;
+        document.getElementById("edit-content").appendChild(newEl);
+        document.querySelectorAll(".edit-box .survey-btn").forEach(element => {
+            element.addEventListener("click", e => deleteQuestionFunc(e));
+        });
+    });
     loadSurveys();
 });
 
@@ -50,52 +93,9 @@ function loadSurveys() {
                 }
             });
         });
-        document.getElementById("add-question").addEventListener("click", () => {
-            let newEl = document.createElement("div");
-            newEl.classList.add("edit-box");
-            newEl.innerHTML = `
-                <textarea class="edit-title" placeholder="Frage"></textarea>
-                <div style="display: inline-block;">
-                    <textarea class="edit-left" placeholder="Antwort links"></textarea>
-                </div>
-                <div style="display: inline-block;">
-                    <textarea class="edit-right" placeholder="Antwort rechts"></textarea>
-                </div>
-                <span class="survey-btn" id="delete-question">Frage löschen</span>
-            `;
-            document.getElementById("edit-content").appendChild(newEl);
-            document.querySelectorAll(".edit-box .survey-btn").forEach(element => {
-                element.addEventListener("click", e => deleteQuestionFunc(e));
-            });
-        });
         document.querySelectorAll(".edit-box .survey-btn").forEach(element => {
             element.addEventListener("click", e => deleteQuestionFunc(e));
         });
-        document.getElementById("edit-cancel").addEventListener("click", () => {
-            document.getElementById("edit-survey-div").style.display = "none";
-        });
-        document.getElementById("edit-save").addEventListener("click", () => {
-            let questionObj = {
-                "name": document.querySelector("input.title").value,
-                "questions": Array.from(document.getElementsByClassName("edit-box")).map(el => {
-                    return [el.children[0].value, el.children[1].children[0].value, el.children[2].children[0].value];
-                })
-            };
-            let path = "/createSurvey";
-            if (currEdit != "") {
-                path = "/editSurvey/" + currEdit;
-            }
-            fetch(path, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(questionObj)
-            }).then(() => {
-                document.getElementById("edit-survey-div").style.display = "none";
-                loadSurveys();
-            });
-        })
         document.querySelectorAll(".survey-btn").forEach(element => {
             element.addEventListener("click", e => {
                 let id = e.target.parentElement.dataset["id"];
