@@ -6,12 +6,16 @@ const crypto = require("crypto");
 
 const fs = require("fs");
 
-const {createCanvas} = require("canvas")
+const {createCanvas} = require("canvas");
 
 const app = express();
 
+const rtg = require("url").parse(process.env.REDISTOGO_URL);
+const redis = require("redis").createClient(rtg.port, rtg.hostname);
+redis.auth(rtg.auth.split(":")[1]);
+
 // To support URL-encoded bodies
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // To parse cookies from the HTTP Request
@@ -21,7 +25,10 @@ const authTokens = [];
 
 let masterPassword = "ggkzo_2020";
 
-const savedSurveys = JSON.parse(fs.readFileSync("surveys.json"));
+let savedSurveys;
+redis.get("json", (err, reply) => {
+    savedSurveys = JSON.parse(reply);
+});
 
 let runningSurveys = [];
 
@@ -92,20 +99,18 @@ app.get("/startSurvey/:id", (req, res) => {
         res.redirect("/login");
         return;
     }
-    let id;
-    for (let survey of savedSurveys) {
-        if (survey.id == req.params.id) {
-            id = crypto.randomBytes(2).toString("hex");
-            console.log(id);
-            runningSurveys[id] = {
-                orig: survey,
-                answers: Array.from(Array(survey.questions.length), () => [])
-            };
-            console.log(runningSurveys[id]);
-            res.send(id);
-            res.end();
-            return;
-        }
+    if (savedSurveys[req.params.id]) {
+        let id = crypto.randomBytes(2).toString("hex");
+        console.log(id);
+        let survey = savedSurveys[req.params.id];
+        runningSurveys[id] = {
+            orig: survey,
+            answers: Array.from(Array(survey.questions.length), () => [])
+        };
+        console.log(runningSurveys[id]);
+        res.send(id);
+        res.end();
+        return;
     }
     res.status(404);
     res.end();
@@ -172,6 +177,40 @@ app.get("/endSurvey/:id", (req, res) => {
         res.end();
         return;
     }
+});
+
+app.post("/createSurvey", (req, res) => {
+    let id = crypto.randomBytes(30).toString("hex");
+    savedSurveys[id] = req.body;
+    redis.set("json", JSON.stringify(savedSurveys));
+    res.status(200);
+    res.end();
+});
+
+app.post("/editSurvey/:id", (req, res) => {
+    let id = String(req.params.id);
+    if (!savedSurveys[id]) {
+        res.status(404);
+        res.end();
+        return;
+    }
+    savedSurveys[id] = req.body;
+    redis.set("json", JSON.stringify(savedSurveys));
+    res.status(200);
+    res.end();
+});
+
+app.get("/deleteSurvey/:id", (req, res) => {
+    let id = String(req.params.id);
+    if (!savedSurveys[id]) {
+        res.status(404);
+        res.end();
+        return;
+    }
+    delete savedSurveys[id];
+    redis.set("json", JSON.stringify(savedSurveys));
+    res.status(200);
+    res.end();
 });
 
 app.post("/survey", (req, res) => {
