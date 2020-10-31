@@ -23,7 +23,7 @@ app.use(cookieParser());
 
 const authTokens = [];
 
-let masterPassword = "ggkzo_2020";
+let masterPassword = "2020umfragekzo_";
 
 let savedSurveys;
 redis.get("json", (err, reply) => {
