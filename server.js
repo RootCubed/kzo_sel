@@ -180,6 +180,10 @@ app.get("/endSurvey/:id", (req, res) => {
 });
 
 app.post("/createSurvey", (req, res) => {
+    if (authTokens[req.cookies["AuthToken"]] == null) {
+        res.redirect("/login");
+        return;
+    }
     let id = crypto.randomBytes(30).toString("hex");
     savedSurveys[id] = req.body;
     redis.set("json", JSON.stringify(savedSurveys));
@@ -188,6 +192,10 @@ app.post("/createSurvey", (req, res) => {
 });
 
 app.post("/editSurvey/:id", (req, res) => {
+    if (authTokens[req.cookies["AuthToken"]] == null) {
+        res.redirect("/login");
+        return;
+    }
     let id = String(req.params.id);
     if (!savedSurveys[id]) {
         res.status(404);
@@ -201,6 +209,10 @@ app.post("/editSurvey/:id", (req, res) => {
 });
 
 app.get("/deleteSurvey/:id", (req, res) => {
+    if (authTokens[req.cookies["AuthToken"]] == null) {
+        res.redirect("/login");
+        return;
+    }
     let id = String(req.params.id);
     if (!savedSurveys[id]) {
         res.status(404);
