@@ -55,6 +55,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 <textarea class="edit-left" placeholder="Antwort links"></textarea>
             </div>
             <div style="display: inline-block;">
+                <textarea class="edit-right" placeholder="Antwort Mitte (optional)"></textarea>
+            </div>
+            <div style="display: inline-block;">
                 <textarea class="edit-right" placeholder="Antwort rechts"></textarea>
             </div>
             <span class="survey-btn" id="delete-question">Frage löschen</span>
@@ -142,7 +145,7 @@ function loadSurveys() {
                                     <textarea class="edit-left" placeholder="Antwort links">${qs[question][1]}</textarea>
                                 </div>
                                 <div style="display: inline-block;">
-                                    <textarea class="edit-right" placeholder="Antwort mitte (optional)">${qs[question][2]}</textarea>
+                                    <textarea class="edit-right" placeholder="Antwort Mitte (optional)">${qs[question][2]}</textarea>
                                 </div>
                                 <div style="display: inline-block;">
                                     <textarea class="edit-right" placeholder="Antwort rechts">${qs[question][3]}</textarea>
