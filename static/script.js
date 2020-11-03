@@ -98,8 +98,17 @@ function drawBackground(cv, ctx) {
 
 function resizeCanvas() {
     let width = document.body.clientWidth;
-    document.querySelectorAll("canvas").forEach(element => {
+    document.querySelectorAll("canvas").forEach((element, index) => {
         element.width = width * 0.8;
-        drawBackground(element, element.getContext("2d"));
+        let ctx = element.getContext("2d");
+        drawBackground(element, ctx);
+        if (answers[index]) {
+            ctx.fillStyle = "#f5163b";
+
+            ctx.beginPath()
+            ctx.ellipse(answers[index][0] * element.width, answers[index][1] * element.height, 4, 4, 0, 0, 2 * Math.PI);
+            ctx.closePath();
+            ctx.fill();
+        }
     });
 }
