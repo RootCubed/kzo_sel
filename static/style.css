@@ -2,106 +2,171 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #ddd;
     padding: 20px;
-    text-align: center;
 }
 
-#maincontainer {
-    display: table;
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-}
-
-#loginprompt {
-    display: table-cell;
-    vertical-align: middle;
-}
-
-#loginprompt input {
-    height: 90px;
-    font-size: 2em;
-    width: 200px;
-    text-align: center;
-    text-transform: uppercase;
-    background-color: #eee;
-    box-shadow: 12px 12px 20px 1px rgba(0, 0, 0, .3);
-    border-radius: 10px;
+#header {
     margin-bottom: 30px;
 }
 
-canvas {
-    border: 1px solid black;
-    margin-top: 10px;
-    margin-left: 4px;
-    background-color: #eee;
+.title {
+    font-size: x-large;
+    font-weight: bold;
+}
+
+#user-div {
+    float: right;
+    border-radius: 20px;
+    padding: 10px;
+    border: 1px solid #aaa;
     cursor: pointer;
 }
 
-.vl {
-    border-left: 2px solid black;
-    border-right: 2px solid black;
-    margin-left: calc(10% - 10px);
-    height: 50px;
-    width: calc(80% + 20px);
+#user-div i {
+    color: #195ec7;
 }
 
-.labelLeft {
-    float: left;
-    margin-left: 10px;
-}
-
-.labelRight {
-    float: right;
-    margin-right: 10px;
-}
-
-.labelLeft, .labelRight, .labelMiddle {
-    display: inline-block;
-}
-
-.labelMiddle {
-    transform: translate(0, -45px);
-}
-
-#footer {
-    width: 100%;
-    padding: 20px 0;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-}
-
-#footer a {
-    text-decoration: none;
-}
-
-.btn {
+.survey-outer {
     background-color: #eee;
     padding: 30px;
     box-shadow: 12px 12px 20px 1px rgba(0, 0, 0, .1);
     border-radius: 10px;
-    cursor: pointer;
     margin-bottom: 30px;
-    display: inline-block;
 }
 
-.btn:hover {
-    background-color: #e8e8e8;
+.survey-btn {
+    float: right;
+    padding: 10px;
+    margin-top: -10px;
+    box-shadow: 4px 4px 8px 1px rgba(0, 0, 0, .1);
+    border-radius: 10px;
+    cursor: pointer;
 }
 
-.btn:active {
-    box-shadow: none;
+.survey-btn:active {
     transform: translate(2px, 2px);
-    box-shadow: 10px 10px 20px 1px rgba(0, 0, 0, .1);
+    box-shadow: 2px 2px 8px 1px rgba(0, 0, 0, .1);
 }
 
-.question {
-    margin-top: 15px;
-    margin-bottom: 15px;
+.survey-start {
+    background-color: #8df68d;
+    margin-right: -10px;
 }
 
-#done h2 {
-    margin-bottom: 50px;
+.survey-end {
+    background-color: #fd7c77;
+    margin-right: -10px;
+}
+
+.survey-edit {
+    background-color: #f2f7b0;
+    margin-right: 10px;
+}
+
+.survey-delete {
+    background-color: #fd7c77;
+    margin-right: 10px;
+}
+
+#code-survey-div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    text-align: center;
+}
+
+#code-survey, #url-survey {
+    display: block;
+}
+
+#url-survey {
+    margin-top: 40vh;
+    font-weight: bold;
+    font-size: 40px;
+}
+
+#code-survey {
+    padding: 10px;
+    margin-top: 20px;
+    box-shadow: 4px 4px 8px 1px rgba(0, 0, 0, .1);
+    border-radius: 10px;
+    display: inline-block;
+    font-size: 50px;
+}
+
+#cs-end {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px;
+    box-shadow: 4px 4px 8px 1px rgba(0, 0, 0, .1);
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+#edit-survey-div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #c8ccce;
+    min-height: 100%;
+}
+
+#edit-inner {
+    margin: 25px;
+}
+
+#create-survey, #add-question {
+    display: block;
+    float: inherit;
+    margin: 0 auto;
+    width: fit-content;
+    background-color: white;
+}
+
+#edit-content {
+    margin-top: 30px;
+}
+
+.edit-box {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 5px;
+    margin-bottom: 20px;
+}
+
+#delete-question {
+    background-color: #f2f7b0;
+    float: right;
+    margin-top: 0px;
+}
+
+#edit-save {
+    background-color: #8df68d;
+    margin-top: 0px;
+}
+
+#edit-cancel {
+    background-color: #fd7c77;
+    margin-top: 0px;
+    margin-right: 10px;
+}
+
+input.title {
+    width: 100%;
+}
+
+textarea {
+    width: 100%;
+    resize: none;
+}
+
+.edit-title {
+    margin-top: 10px;
+}
+
+.edit-left, .edit-right {
+    width: 100%;
 }

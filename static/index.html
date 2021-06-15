@@ -2,26 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=0.8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <script src="script.js"></script>
+    <title>Meine Umfragen</title>
     <link rel="stylesheet" href="style.css">
-    <title>KZO Survey</title>
+    <script src="script.js"></script>
+    <script src="https://use.fontawesome.com/0d4467d173.js"></script>
 </head>
 <body>
-    <div id="maincontainer">
-        <div id="loginprompt">
-            <h2>Geben Sie Ihren Fragebogencode ein.</h2>
-            <input id="questionnaireCodeEntry" type="text" placeholder="XXXX" autocomplete="off">
+    <div id="header">
+        <span class="title">Meine Umfragen</span>
+    </div>
+    <div id="content">
+    </div>
+    <span class="survey-btn" id="create-survey">
+        Umfrage erstellen
+    </span>
+    <div id="edit-survey-div">
+        <div id="edit-inner">
+            <input type="text" class="title" placeholder="Titel"></input>
+            <div id="edit-questions">
+                <div id="edit-content">
+
+                </div>
+            </div>
+            <span class="survey-btn" id="add-question">
+                Frage hinzufügen
+            </span>
+            <span class="survey-btn" id="edit-save">Speichern</span>
+            <span class="survey-btn" id="edit-cancel">Abbrechen</span>
         </div>
     </div>
-    <div id="questions"></div>
-    <div id="done" style="display: none">
-        <h2>Vielen Dank für Ihre Teilnahme!</h2>
-        <span class="btn" id="btn-done">Fertig</span>
-    </div>
-    <div id="footer">
-        <a href="/controlpanel">Login für Lehrer</a>
+    <div id="code-survey-div">
+        <span id="url-survey">kzosurvey.herokuapp.com</span>
+        <span id="code-survey">XXXX</span>
+        <br>
+        <span class="survey-end" id="cs-end">Beenden</span>
     </div>
 </body>
 </html>

@@ -1,110 +1,27 @@
 const express = require("express");
-const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 
 const crypto = require("crypto");
-
 const fs = require("fs");
-
 const {createCanvas} = require("canvas");
 
 const app = express();
 
-const rtg = require("url").parse(process.env.REDISTOGO_URL);
-const redis = require("redis").createClient(rtg.port, rtg.hostname);
-redis.auth(rtg.auth.split(":")[1]);
-
-// To support URL-encoded bodies
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-
-// To parse cookies from the HTTP Request
-app.use(cookieParser());
-
-const authTokens = [];
-
-let masterPassword = "2020umfragekzo_";
-
 let savedSurveys;
-redis.get("json", (err, reply) => {
-    savedSurveys = JSON.parse(reply);
-});
+if (!fs.existsSync("surveys.json")) {
+    fs.writeFileSync("surveys.json", "[]");
+}
+savedSurveys = JSON.parse(fs.readFileSync("surveys.json"));
 
 let runningSurveys = [];
 
-function getHashedPassword(password) {
-    const sha256 = crypto.createHash("sha256");
-    const hash = sha256.update(password).digest("base64");
-    return hash;
-}
-
-function generateAuthToken() {
-    return crypto.randomBytes(30).toString("hex");
-}
-
-app.get("/s/:id", (req, res) => {
-    let id = req.params.id.toLowerCase();
-    if (runningSurveys[id]) {
-        res.send(runningSurveys[id].orig);
-    } else {
-        res.status(404);
-        res.end();
-    }
-});
-
-app.get("/heartbeat", (req, res) => {
-    res.send("ok");
-    res.end();
-});
-
-app.post("/login", (req, res) => {
-    const { password } = req.body;
-    const hashedPassword = getHashedPassword(password);
-
-    if (hashedPassword == getHashedPassword(masterPassword)) {
-        const authToken = generateAuthToken();
-
-        // Store authentication token
-        authTokens[authToken] = "root";
-
-        // Setting the auth token in cookies
-        res.cookie("AuthToken", authToken);
-
-        // Redirect user to the protected page
-        res.redirect("/controlpanel");
-    } else {
-        res.sendFile(__dirname + "/static/login/index.html");
-    }
-});
-
-app.get("/logout", (req, res) => {
-    res.cookie("AuthToken", "");
-    res.redirect("/");
-});
-
-app.get("/controlpanel", (req, res) => {
-    if (authTokens[req.cookies["AuthToken"]] != null) {
-        res.sendFile(__dirname + "/static/controlpanel/index.html");
-    } else {
-        res.redirect("/login");
-    }
-});
-
 app.get("/getAllSurveys", (req, res) => {
-    if (authTokens[req.cookies["AuthToken"]] == null) {
-        res.redirect("/login");
-        return;
-    }
     res.send(savedSurveys);
     res.end();
     return;
 });
 
 app.get("/startSurvey/:id", (req, res) => {
-    if (authTokens[req.cookies["AuthToken"]] == null) {
-        res.redirect("/login");
-        return;
-    }
     if (savedSurveys[req.params.id]) {
         let id = crypto.randomBytes(2).toString("hex");
         console.log(id);
@@ -124,10 +41,6 @@ app.get("/startSurvey/:id", (req, res) => {
 });
 
 app.get("/endSurvey/:id", (req, res) => {
-    if (authTokens[req.cookies["AuthToken"]] == null) {
-        res.redirect("/login");
-        return;
-    }
     let id = String(req.params.id).toLowerCase();
     console.log(runningSurveys, id);
     if (runningSurveys[id]) {
@@ -198,22 +111,14 @@ app.get("/endSurvey/:id", (req, res) => {
 });
 
 app.post("/createSurvey", (req, res) => {
-    if (authTokens[req.cookies["AuthToken"]] == null) {
-        res.redirect("/login");
-        return;
-    }
     let id = crypto.randomBytes(30).toString("hex");
     savedSurveys[id] = req.body;
-    redis.set("json", JSON.stringify(savedSurveys));
+    fs.writeFileSync("surveys.json", JSON.stringify(savedSurveys));
     res.status(200);
     res.end();
 });
 
 app.post("/editSurvey/:id", (req, res) => {
-    if (authTokens[req.cookies["AuthToken"]] == null) {
-        res.redirect("/login");
-        return;
-    }
     let id = String(req.params.id);
     if (!savedSurveys[id]) {
         res.status(404);
@@ -221,16 +126,12 @@ app.post("/editSurvey/:id", (req, res) => {
         return;
     }
     savedSurveys[id] = req.body;
-    redis.set("json", JSON.stringify(savedSurveys));
+    fs.writeFileSync("surveys.json", JSON.stringify(savedSurveys));
     res.status(200);
     res.end();
 });
 
 app.get("/deleteSurvey/:id", (req, res) => {
-    if (authTokens[req.cookies["AuthToken"]] == null) {
-        res.redirect("/login");
-        return;
-    }
     let id = String(req.params.id);
     if (!savedSurveys[id]) {
         res.status(404);
@@ -238,15 +139,24 @@ app.get("/deleteSurvey/:id", (req, res) => {
         return;
     }
     delete savedSurveys[id];
-    redis.set("json", JSON.stringify(savedSurveys));
+    fs.writeFileSync("surveys.json", JSON.stringify(savedSurveys));
     res.status(200);
     res.end();
 });
 
-app.post("/survey", (req, res) => {
+app.use(express.static("static"));
+app.listen(process.env.PORT_TEACHER || 3001, () => console.log("Web server is up and running"));
+
+const app_student = express();
+
+// To support URL-encoded bodies
+app_student.use(bodyParser.urlencoded({ extended: true }));
+app_student.use(bodyParser.json());
+
+app_student.post("/survey", (req, res) => {
     let sId = req.body.surveyID.toLowerCase();
     if (!(sId && req.body.answers && req.body.answers.length == runningSurveys[sId].orig.questions.length)) {
-        console.log("invalid code lol fuck you");
+        console.log("student entered an invalid code");
         res.send("don't do that thank you very much");
         res.end();
         return;
@@ -255,7 +165,6 @@ app.post("/survey", (req, res) => {
         // sanity checks
         console.log(answer);
         if (!answer || answer.length != 2 || answer[0] < 0 || answer[0] > 1 || answer[1] < 0 || answer[1] > 1) {
-            console.log("fucking hacker.,.,,,.,,");
             res.send("don't do that thank you very much");
             res.end();
             return;
@@ -271,5 +180,15 @@ app.post("/survey", (req, res) => {
     res.end();
 });
 
-app.use(express.static("static"));
-app.listen(process.env.PORT || 3000, () => console.log("Web server is up and running"));
+app_student.get("/s/:id", (req, res) => {
+    let id = req.params.id.toLowerCase();
+    if (runningSurveys[id]) {
+        res.send(runningSurveys[id].orig);
+    } else {
+        res.status(404);
+        res.end();
+    }
+});
+
+app_student.use(express.static("static_student"));
+app_student.listen(process.env.PORT_STUDENT || 3000, () => console.log("Web server is up and running"));

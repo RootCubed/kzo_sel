@@ -1,114 +1,182 @@
-let answers = [];
-let ID = "";
+let currentCode = "";
+let loadedQuestions;
+let currEdit = "";
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.querySelector("#btn-done").addEventListener("click", () => {
-        location.reload();
+    document.getElementById("code-survey-div").style.display = "none";
+    document.getElementById("edit-survey-div").style.display = "none";
+    document.querySelector("#cs-end").addEventListener("mousedown", () => {
+        endCurrSurvey();
+        document.getElementById("code-survey-div").style.display = "none";
     });
-    document.getElementById("questionnaireCodeEntry").addEventListener("keyup", (e) => {
-        let val = e.target.value;
-        if (val.length == 4) {
-            e.target.blur();
-            ID = val;
-            // login
-            fetch(window.location + "s/" + val)
-            .then(r => {
-                if (r.status != 200) {
-                    alert("Ungültiger Code!");
-                    e.target.value = "";
-                    return;
-                }
-                return r.json()
+    document.getElementById("edit-cancel").addEventListener("click", () => {
+        document.getElementById("edit-survey-div").style.display = "none";
+    });
+    document.getElementById("edit-save").addEventListener("click", () => {
+        let questionObj = {
+            "name": document.querySelector("input.title").value,
+            "questions": Array.from(document.getElementsByClassName("edit-box")).map(el => {
+                return [
+                    el.children[0].value,
+                    el.children[1].children[0].value,
+                    el.children[2].children[0].value,
+                    el.children[3].children[0].value];
             })
-            .then(r => {
-                if (!r) return;
-                document.getElementById("maincontainer").style.display = "none";
-                document.getElementById("footer").style.display = "none";
-                let div = document.querySelector("#questions");
-                div.innerHTML = "<h2>" + r.name + "</h2>";
-                let i = 0;
-                for (let question of r.questions) {
-                    div.innerHTML += `
-                    <div class="question">
-                        <label>${question[0]}</label><br>
-                        <canvas height="50px" width="400px" id="q_${i++}"></canvas>
-                        <div class="vl">
-                            <span class="labelLeft">${question[1]}</span>
-                            <span class="labelRight">${question[3]}</span>
-                        </div>
-                        <div class="vl2">
-                            <span class="labelMiddle">${question[2]}</span>
-                        </div>
-                    </div>
-                    `
-                }
-                div.innerHTML += "<span class='btn' id='submit'>Senden</span>";
-                answers = new Array(r.length);
-                resizeCanvas();
-                document.getElementById("submit").addEventListener("click", () => {
-                    fetch("/survey", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            surveyID: ID,
-                            answers: answers
-                        })
-                    }).then(res => {
-                        console.log(res);
-                        div.style.display = "none";
-                        document.querySelector("#done").style.display = "inline";
-                    });
-                });
-                document.querySelectorAll("canvas").forEach(element => {
-                    element.addEventListener("click", (e) => {
-                        let ctx = e.target.getContext("2d");
-                        ctx.clearRect(0, 0, e.target.width, e.target.height);
-                        
-                        drawBackground(e.target, ctx);
-
-                        ctx.fillStyle = "#f5163b";
-
-                        ctx.beginPath()
-                        ctx.ellipse(e.offsetX, e.offsetY, 4, 4, 0, 0, 2 * Math.PI);
-                        ctx.closePath();
-                        ctx.fill();
-                        let questionID = e.target.id.split('q_')[1];
-                        answers[questionID] = [e.offsetX / e.target.width, e.offsetY / e.target.height];
-                    });
-                });
-            });
+        };
+        let path = "/createSurvey";
+        if (currEdit != "") {
+            path = "/editSurvey/" + currEdit;
         }
+        fetch(path, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(questionObj)
+        }).then(() => {
+            document.getElementById("edit-survey-div").style.display = "none";
+            loadSurveys();
+        });
     });
+    document.getElementById("add-question").addEventListener("click", () => {
+        let newEl = document.createElement("div");
+        newEl.classList.add("edit-box");
+        newEl.innerHTML = `
+            <textarea class="edit-title" placeholder="Frage"></textarea>
+            <div style="display: inline-block;">
+                <textarea class="edit-left" placeholder="Antwort links"></textarea>
+            </div>
+            <div style="display: inline-block;">
+                <textarea class="edit-right" placeholder="Antwort Mitte (optional)"></textarea>
+            </div>
+            <div style="display: inline-block;">
+                <textarea class="edit-right" placeholder="Antwort rechts"></textarea>
+            </div>
+            <span class="survey-btn" id="delete-question">Frage löschen</span>
+        `;
+        document.getElementById("edit-content").appendChild(newEl);
+        document.querySelectorAll(".edit-box .survey-btn").forEach(element => {
+            element.addEventListener("click", e => deleteQuestionFunc(e));
+        });
+    });
+    loadSurveys();
 });
 
-window.addEventListener("resize", (e) => {
-    resizeCanvas();
-});
+function loadSurveys() {
+    document.getElementById("content").innerHTML = "";
+    fetch("/getAllSurveys/")
+    .then(r => {
+        return r.json();
+    })
+    .then(r => {
+        loadedQuestions = r;
+        let list = document.querySelector("#content");
+        for (let question in r) {
+            list.innerHTML += `<div class="survey-outer" data-id="${question}">
+            <span class="survey-title">${r[question].name}</span>
+            <span class="survey-btn survey-start">Starten</span>
+            <span class="survey-btn survey-edit">Bearbeiten</span>
+            <span class="survey-btn survey-delete">Löschen</span>
+        </div>`;
+        }
 
-function drawBackground(cv, ctx) {
-    /*var gradient = ctx.createLinearGradient(0, 0, cv.width, 0);
-    gradient.addColorStop(0, "red");
-    gradient.addColorStop(0.5, "yellow");
-    gradient.addColorStop(1, "green");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, cv.width, cv.height);*/
+        document.getElementById("create-survey").addEventListener("click", () => {
+            currEdit = "";
+            document.getElementById("edit-content").innerHTML = "";
+            document.getElementById("edit-survey-div").style.display = "inline";
+            document.querySelector("#edit-survey-div .title").value = "";
+            document.getElementById("add-question").click();
+        });
+        document.querySelectorAll(".survey-delete").forEach(element => {
+            element.addEventListener("click", e => {
+                let id = e.target.parentElement.dataset["id"];
+                if (confirm("Wollen Sie wirklich diese Umfrage löschen?")) {
+                    fetch("/deleteSurvey/" + id).then(() => {
+                        loadSurveys();
+                    });
+                }
+            });
+        });
+        document.querySelectorAll(".edit-box .survey-btn").forEach(element => {
+            element.addEventListener("click", e => deleteQuestionFunc(e));
+        });
+        document.querySelectorAll(".survey-btn").forEach(element => {
+            element.addEventListener("click", e => {
+                let id = e.target.parentElement.dataset["id"];
+                switch (e.target.classList[1]) {
+                    case "survey-start":
+                        fetch("/startSurvey/" + id)
+                        .then(r => {
+                            if (r.redirected) {
+                                alert("Sitzung abgelaufen. Bitte loggen Sie sich erneut ein.");
+                                location.reload();
+                            }
+                            if (r.status != 200) {
+                                alert("Ein Fehler ist aufgetreten. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.");
+                                return;
+                            }
+                            return r.text()
+                        })
+                        .then(r => {
+                            document.getElementById("code-survey-div").style.display = "inline";
+                            document.getElementById("code-survey").innerText = r.toUpperCase();
+                            currentCode = r;
+                        });
+                        break;
+                    case "survey-edit":
+                        currEdit = id;
+                        document.getElementById("edit-survey-div").style.display = "inline";
+                        document.querySelector("#edit-survey-div .title").value = loadedQuestions[id].name;
+                        let innerHTML = "";
+                        let qs = loadedQuestions[id].questions;
+                        for (let question in qs) {
+                            innerHTML += `
+                            <div class="edit-box">
+                                <textarea class="edit-title" placeholder="Frage">${qs[question][0]}</textarea>
+                                <div style="display: inline-block;">
+                                    <textarea class="edit-left" placeholder="Antwort links">${qs[question][1]}</textarea>
+                                </div>
+                                <div style="display: inline-block;">
+                                    <textarea class="edit-right" placeholder="Antwort Mitte (optional)">${qs[question][2]}</textarea>
+                                </div>
+                                <div style="display: inline-block;">
+                                    <textarea class="edit-right" placeholder="Antwort rechts">${qs[question][3]}</textarea>
+                                </div>
+                                <span class="survey-btn" id="delete-question">Frage löschen</span>
+                            </div>
+                            `;
+                        }
+                        document.getElementById("edit-content").innerHTML = innerHTML;
+                        break;
+                    case "survey-end":
+                        endCurrSurvey();
+                        break;
+                }
+            });
+        });
+    });
 }
 
-function resizeCanvas() {
-    let width = document.body.clientWidth;
-    document.querySelectorAll("canvas").forEach((element, index) => {
-        element.width = width * 0.8;
-        let ctx = element.getContext("2d");
-        drawBackground(element, ctx);
-        if (answers[index]) {
-            ctx.fillStyle = "#f5163b";
+function deleteQuestionFunc(e) {
+    e.target.parentElement.remove();
+}
 
-            ctx.beginPath()
-            ctx.ellipse(answers[index][0] * element.width, answers[index][1] * element.height, 4, 4, 0, 0, 2 * Math.PI);
-            ctx.closePath();
-            ctx.fill();
+function endCurrSurvey() {
+    fetch("/endSurvey/" + currentCode)
+    .then(r => {
+        if (r.status != 200) {
+            alert("Ein Fehler ist aufgetreten. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.");
+            return;
         }
+        return r.blob();
+    })
+    .then(blob => {
+        let url = window.URL.createObjectURL(blob);
+        let a = document.createElement("a");
+        a.href = url;
+        a.download = "Resultat Umfrage.pdf";
+        document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
+        a.click();    
+        a.remove();  //afterwards we remove the element again         
     });
 }
